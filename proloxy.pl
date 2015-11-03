@@ -39,10 +39,7 @@
    1) is request_uri guaranteed to be present? how else to obtain the
       request URI? (please document it if it is the case)
 
-   2) http_reply(file(text/plain, '/proloxy.pl'), user_output, []).
-      ==> fails. --- issue filed.
-
-   3) Why is there no codes() option in throw(http_reply) ? This would
+   2) Why is there no codes() option in throw(http_reply) ? This would
       allow us to get rid of the mem files. --- issue filed.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
