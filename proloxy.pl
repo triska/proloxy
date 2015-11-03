@@ -39,17 +39,14 @@
    1) is request_uri guaranteed to be present? how else to obtain the
       request URI? (please document it if it is the case)
 
-   2) http_get/3: option reply_header(Hs) does not yield name=value pairs,
-      but name(value) pairs!
-
-   3)  http_get('localhost:4041', R, []) --> false
+   2)  http_get('localhost:4041', R, []) --> false
        http_get('127.0.0.1:4041', R, []) --> works
           --- solution: use http://localhost:4041
 
-   4) http_reply(file(text/plain, '/proloxy.pl'), user_output, []).
+   3) http_reply(file(text/plain, '/proloxy.pl'), user_output, []).
       ==> fails. --- issue filed.
 
-   5) Why is there no codes() option in throw(http_reply) ? This would
+   4) Why is there no codes() option in throw(http_reply) ? This would
       allow us to get rid of the mem files. --- issue filed.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
