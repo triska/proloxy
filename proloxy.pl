@@ -41,7 +41,8 @@
       request URI? (please document it if it is the case)
 
    2) Why is there no codes() option in throw(http_reply) ? This would
-      allow us to get rid of the mem files. --- issue filed.
+      allow us to get rid of the mem files.
+      -- SOLVED with bytes/2 option. TODO: use it for post requests.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
