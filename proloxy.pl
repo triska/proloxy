@@ -24,6 +24,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_log)).
 :- use_module(library(http/http_unix_daemon)).
+:- use_module(library(http/http_open)).
 :- use_module(library(http/http_client)).
 :- use_module(library(memfile)).
 :- use_module(library(http/http_header)).
@@ -49,19 +50,12 @@ handle_request(Request) :-
         memberchk(request_uri(URI), Request),
         atomic_list_concat(['http://127.0.0.1:4041',URI], Target),
         debug(myhttp, "target: ~q\n", [Target]),
-        % Strategy: read everything to a memory file, then serve that file
         (   memberchk(method(get), Request) ->
-            new_memory_file(MemFile),
-            open_memory_file(MemFile, write, MemOut, [encoding(octet)]),
-            http_get(Target, _, [to(stream(MemOut)),reply_header(Hs)]),
-            close(MemOut),
-            size_memory_file(MemFile, Size),
-            debug(myhttp, "size: ~q\n", [Size]),
-            open_memory_file(MemFile, read, MemIn, [encoding(octet)]),
-            (   memberchk(content_type(MimeType), Hs) ->
-                throw(http_reply(stream(MemIn, Size), [content_type(MimeType)]))
-            ;   throw(http_reply(stream(MemIn, Size), []))
-            )
+            http_open(Target, In, [method(get),
+                                   header(content_type, ContentType)]),
+            call_cleanup(read_string(In, _, Bytes),
+                         close(In)),
+            throw(http_reply(bytes(ContentType, Bytes)))
         ;   memberchk(method(post), Request) ->
             %memberchk(content_length(Length), Request),
             %memberchk(input(Stream), Request),
