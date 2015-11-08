@@ -9,8 +9,7 @@
    Eventually, we want to relay requests to different ports based on
    flexible rules.
 
-   There are some pending issues in the HTTP libraries of SWI-Prolog.
-   As soon as they are fixed, we can simplify the code a lot.
+   This requires SWI-Prolog > 7.3.10.
 
    Written by Markus Triska, July 2015.
    Public domain code.
@@ -25,68 +24,58 @@
 :- use_module(library(http/http_log)).
 :- use_module(library(http/http_unix_daemon)).
 :- use_module(library(http/http_open)).
-:- use_module(library(http/http_client)).
-:- use_module(library(memfile)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_error)).
 
 %:- initialization http_daemon.
 
-:- http_handler(/, handle_request, [prefix]).
 
-:- debug(myhttp).
+:- http_handler(/, handle_request('http://localhost:4041'), [prefix]).
+
+:- debug(proloxy).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    1) is request_uri guaranteed to be present? how else to obtain the
       request URI? (please document it if it is the case)
-
-   2) Why is there no codes() option in throw(http_reply) ? This would
-      allow us to get rid of the mem files.
-      -- SOLVED with bytes/2 option. TODO: use it for post requests.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-handle_request(Request) :-
-        debug(myhttp, "request: ~q\n", [Request]),
+handle_request(To, Request) :-
+        debug(proloxy, "request: ~q\n", [Request]),
         memberchk(request_uri(URI), Request),
-        atomic_list_concat(['http://127.0.0.1:4041',URI], Target),
-        debug(myhttp, "target: ~q\n", [Target]),
-        (   memberchk(method(get), Request) ->
-            http_open(Target, In, [method(get),
-                                   header(content_type, ContentType)]),
-            call_cleanup(read_string(In, _, Bytes),
-                         close(In)),
-            throw(http_reply(bytes(ContentType, Bytes)))
-        ;   memberchk(method(post), Request) ->
-            %memberchk(content_length(Length), Request),
-            %memberchk(input(Stream), Request),
-            http_read_data(Request, Codes, [to(codes)]),
-            debug(myhttp, "read: ~s\n", [Codes]),
-            new_memory_file(MemFile),
-            open_memory_file(MemFile, write, MemOut, [encoding(octet)]),
-            memberchk(content_type(MimeType1), Request),
-            debug(myhttp, "\n\nmime type: ~q\n\n", [MimeType1]),
+        memberchk(method(Method0), Request),
+        atomic_list_concat([To,URI], Target),
+        debug(proloxy, "target: ~q\n", [Target]),
+        method_pure(Method0, Method),
+        proxy(Method, Target, Request).
 
-            % TODO: if I use MimeType1 instead of specifying
-            % 'application/json', I get, on the RITS side: error("Domain
-            % error: `mimetype' expected, found `'application/json;
-            % charset=utf-8; charset=UTF-8''")). --- issue filed.
+proxy(data(Method), Target, Request) :-
+        read_data(Request, Data),
+        http_open(Target, In, [method(Method), post(Data),
+                               header(content_type, ContentType)]),
+        call_cleanup(read_string(In, _, Bytes),
+                     close(In)),
+        throw(http_reply(bytes(ContentType, Bytes))).
+proxy(other(Method), Target, _) :-
+        http_open(Target, In, [method(Method),
+                               header(content_type, ContentType)]),
+        call_cleanup(read_string(In, _, Bytes),
+                     close(In)),
+        throw(http_reply(bytes(ContentType, Bytes))).
 
-            http_post(Target, codes('application/json',Codes), _,
-                      [to(stream(MemOut)),
-                       reply_header(Hs)]),
-            debug(myhttp, "header: ~q\n", [Hs]),
-            memberchk(content_type(MimeType), Hs),
-            close(MemOut),
-            debug(myhttp, "\n\nSecond mime type: ~q\n\n", [MimeType]),
-            size_memory_file(MemFile, Size),
-            open_memory_file(MemFile, read, MemIn, [encoding(octet)]),
-            debug(myhttp, "size: ~q\n", [Size]),
-            throw(http_reply(stream(MemIn,Size), [content_type(MimeType)]))
-        ;   throw(method_not_supported)
+read_data(Request, bytes(ContentType, Bytes)) :-
+        memberchk(input(In), Request),
+        memberchk(content_type(ContentType), Request),
+        (   memberchk(content_length(Len), Request) ->
+            read_string(In, Len, Bytes)
+        ;   read_string(In, _, Bytes)
         ).
 
+method_pure(M0, M) :- once(defaulty_pure(M0, M)).
+
+defaulty_pure(post, data(post)).
+defaulty_pure(put, data(put)).
+defaulty_pure(M, other(M)).
 
 proloxy(Port) :-
 	http_server(http_dispatch, [port(Port)]).
-
