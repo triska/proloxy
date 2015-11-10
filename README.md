@@ -11,5 +11,4 @@ This reverse proxy is currently very preliminary:
 It relays all requests to port 4041 on localhost, where another web
 server must handle the request.
 
-There are currently some pending issues in the SWI-Prolog HTTP
-libraries. As soon as they are resolved, we can shorten the code.
+This **requires** SWI-Prolog &gt;= 7.3.11.
