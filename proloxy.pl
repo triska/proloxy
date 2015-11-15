@@ -9,7 +9,7 @@
    Eventually, we want to relay requests to different ports based on
    flexible rules.
 
-   This requires SWI-Prolog > 7.3.10.
+   This requires SWI-Prolog >= 7.3.10.
 
    Written by Markus Triska, July 2015.
    Public domain code.
@@ -23,6 +23,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_log)).
 :- use_module(library(http/http_unix_daemon)).
+:- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_error)).
@@ -52,12 +53,14 @@ handle_request(To, Request) :-
 proxy(data(Method), Target, Request) :-
         read_data(Request, Data),
         http_open(Target, In, [method(Method), post(Data),
+%                               cert_verify_hook(cert_accept_any),
                                header(content_type, ContentType)]),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
         throw(http_reply(bytes(ContentType, Bytes))).
 proxy(other(Method), Target, _) :-
         http_open(Target, In, [method(Method),
+%                               cert_verify_hook(cert_accept_any),
                                header(content_type, ContentType)]),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
@@ -79,3 +82,12 @@ defaulty_pure(M, other(M)).
 
 proloxy(Port) :-
 	http_server(http_dispatch, [port(Port)]).
+
+https_proloxy(Port) :-
+	http_server(http_dispatch,
+		    [ port(Port),
+		      ssl([ certificate_file('server.crt'),
+			    key_file('server.key'),
+			    password("your_password")
+			  ])
+		    ]).
