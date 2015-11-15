@@ -9,7 +9,7 @@
    Eventually, we want to relay requests to different ports based on
    flexible rules.
 
-   This requires SWI-Prolog >= 7.3.10.
+   This requires SWI-Prolog >= 7.3.12.
 
    Written by Markus Triska, July 2015.
    Public domain code.
@@ -27,9 +27,13 @@
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_error)).
+:- use_module(library(http/html_write)).
 
 %:- initialization http_daemon.
 
+http:http_address -->
+	html(address([a(href('https://github.com/triska/proloxy'),
+                        'Proloxy')])).
 
 :- http_handler(/, handle_request('http://localhost:4041'), [prefix]).
 
@@ -53,18 +57,29 @@ handle_request(To, Request) :-
 proxy(data(Method), Target, Request) :-
         read_data(Request, Data),
         http_open(Target, In, [method(Method), post(Data),
-%                               cert_verify_hook(cert_accept_any),
+                               % cert_verify_hook(cert_accept_any),
                                header(content_type, ContentType)]),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
         throw(http_reply(bytes(ContentType, Bytes))).
 proxy(other(Method), Target, _) :-
         http_open(Target, In, [method(Method),
-%                               cert_verify_hook(cert_accept_any),
+                               % cert_verify_hook(cert_accept_any),
+                               redirect(false),
+                               header(location, Location),
+                               status_code(Code),
                                header(content_type, ContentType)]),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
-        throw(http_reply(bytes(ContentType, Bytes))).
+        (   redirect_code(Code, Status) ->
+            Reply =.. [Status,Location],
+            throw(http_reply(Reply))
+        ;   throw(http_reply(bytes(ContentType, Bytes)))
+        ).
+
+redirect_code(301, moved).
+redirect_code(302, moved_temporary).
+redirect_code(303, see_other).
 
 read_data(Request, bytes(ContentType, Bytes)) :-
         memberchk(input(In), Request),
