@@ -28,14 +28,18 @@
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_error)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_server_files)).
 
 %:- initialization http_daemon.
 
-http:http_address -->
-	html(address([a(href('https://github.com/triska/proloxy'),
-                        'Proloxy')])).
+:- http_handler('/test',
+                handle_request('/test', 'http://localhost:4041'),
+                [prefix]).
 
-:- http_handler(/, handle_request('http://localhost:4041'), [prefix]).
+:- http_handler('/rits',
+                handle_request('/rits', 'http://localhost:4043'),
+                [prefix]).
+
 
 :- debug(proloxy).
 
@@ -45,16 +49,17 @@ http:http_address -->
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-handle_request(To, Request) :-
+handle_request(Prefix, To, Request) :-
         debug(proloxy, "request: ~q\n", [Request]),
-        memberchk(request_uri(URI), Request),
+        memberchk(request_uri(URI0), Request),
+        atom_concat(Prefix, URI, URI0),
         memberchk(method(Method0), Request),
         atomic_list_concat([To,URI], Target),
         debug(proloxy, "target: ~q\n", [Target]),
         method_pure(Method0, Method),
-        proxy(Method, Target, Request).
+        proxy(Method, Prefix, Target, Request).
 
-proxy(data(Method), Target, Request) :-
+proxy(data(Method), _, Target, Request) :-
         read_data(Request, Data),
         http_open(Target, In, [method(Method), post(Data),
                                % cert_verify_hook(cert_accept_any),
@@ -62,16 +67,20 @@ proxy(data(Method), Target, Request) :-
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
         throw(http_reply(bytes(ContentType, Bytes))).
-proxy(other(Method), Target, _) :-
+proxy(other(Method), Prefix, Target, _) :-
         http_open(Target, In, [method(Method),
                                % cert_verify_hook(cert_accept_any),
                                redirect(false),
-                               header(location, Location),
+                               header(location, Location0),
                                status_code(Code),
                                header(content_type, ContentType)]),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
         (   redirect_code(Code, Status) ->
+            (   uri_is_global(Location0) ->
+                Location = Location0
+            ;   atom_concat(Prefix, Location0, Location)
+            ),
             Reply =.. [Status,Location],
             throw(http_reply(Reply))
         ;   throw(http_reply(bytes(ContentType, Bytes)))
@@ -106,3 +115,7 @@ https_proloxy(Port) :-
 			    password("your_password")
 			  ])
 		    ]).
+
+http:http_address -->
+	html(address([a(href('https://github.com/triska/proloxy'),
+                        'Proloxy')])).
