@@ -73,8 +73,8 @@
    connection (the Proloxy<->servers connections stay local).
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-:- http_handler('/test',
-                handle_request('/test', 'http://localhost:4041'),
+:- http_handler(/,
+                handle_request('', 'http://localhost:4041'),
                 [prefix]).
 
 :- http_handler('/rits',
