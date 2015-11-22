@@ -45,77 +45,142 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_server_files)).
 
+:- dynamic request_prefix_uri/3.
+:- http_handler(/, custom_target, [prefix]).
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Configuration
    =============
 
-   Different web services are reachable via different paths.
+   Proloxy relays client requests to web services, based on rules.
+   There are two ways to make new web services available, with the
+   first having priority over the second:
 
-   For example, in the situation below we relay requests for:
+   1) Add a http_handler/3 directive of the form:
 
-      /rits/<File>
+          :- http_handler(Prefix, prefix_target(Prefix, Target), [prefix]).
 
-   to http://localhost:4043/<File>, where a RITS HTTP server handles
-   the request. Note that '/rits' needs to be specified as the prefix
-   in handle_request/2 too, because redirects that the RITS server
-   emits need to be rewritten: If the RITS server redirects to <R>,
-   then the proxy needs to redirect the client to /rits/<R>, so that
-   the new request is again delegated to the RITS server.
+      This relays requests for Prefix/Path to Target/Path.
 
-   In the example below, all other requests are relayed to a local web
-   server on port 4041, passing the original request path unmodified.
-   This different server can for example host the site's main page.
+      For example, the directive:
 
-   You can add new services below, using a dedicated prefix for each.
+          :- http_handler('/rits',
+                          prefix_target('/rits', 'http://localhost:4043'),
+                          [prefix]).
+
+      relays /rits/File to http://localhost:4043/File, where a RITS
+      HTTP server handles the request.
+
+      Note in particular that:
+
+      -) the prefix is _removed_ from the target path, i.e., the
+         target server does *not* see the Prefix part of the URI.
+
+      -) the _same_ prefix that is used for selecting the target
+         service is also specified as the prefix in prefix_target/2.
+         This is because HTTP _redirects_ that the target server emits
+         need to be rewritten. For example, if the RITS server
+         redirects to <R>, then Proloxy needs to redirect the client
+         to /rits/<R>, so that the next client request is again
+         relayed to the RITS server.
+
+      The directive with the longest matching Prefix is used.
+
+   2) Add a custom request_prefix_uri/3 clause, relating the HTTP
+      request to a prefix (which is, as above, needed to rewrite HTTP
+      redirects that the target server emits) and target URI. The
+      first matching clause is used.
+
+      For example, by adding the Prolog rule:
+
+          request_prefix_uri(Request, '', TargetURI) :-
+                  memberchk(request_uri(URI), Request),
+                  atomic_list_concat(['http://localhost:4041',URI], TargetURI).
+
+      all requests are relayed to a local web server on port
+      4041, passing the original request path unmodified. This
+      different server can for example host the site's main page.
+
+   You can add new target services, using these configuration elements.
 
    An additional feature: You can easily enable HTTPS for all web
-   servers at once by making Proloxy itself use HTTPS for the client
+   services at once by making Proloxy itself use HTTPS for the client
    connection (the Proloxy<->servers connections stay local).
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-:- http_handler(/,
-                handle_request('', 'http://localhost:4041'),
-                [prefix]).
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Sample configuration.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+% 1) Example of using http_handler/3 directive to relay requests.
 
 :- http_handler('/rits',
-                handle_request('/rits', 'http://localhost:4043'),
+                prefix_target('/rits', 'http://localhost:4043'),
                 [prefix]).
+
+% 2) More flexible, custom rule for choosing a target URI.
+
+request_prefix_uri(Request, '', TargetURI) :-
+        memberchk(request_uri(URI), Request),
+        atomic_list_concat(['http://localhost:4041',URI], TargetURI).
+
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Main logic. Relay requests based on the defined rules.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 %:- initialization http_daemon.
 
 :- debug(proloxy).
+
+custom_target(Request) :-
+        debug(proloxy, "request: ~q\n", [Request]),
+        (   request_prefix_uri(Request, Prefix, TargetURI) ->
+            true % commit to first matching clause
+        ;   throw(no_matching_clause)
+        ),
+        memberchk(request_uri(URI), Request),
+        memberchk(method(Method0), Request),
+        debug(proloxy, "target URI: ~q\n", [TargetURI]),
+        method_pure(Method0, Method),
+        proxy(Method, Prefix, URI, TargetURI, Request).
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Entry point for requests that are relayed based on http_handler/3
+   directives.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    1) is request_uri guaranteed to be present? how else to obtain the
       request URI? (please document it if it is the case)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-
-handle_request(Prefix, To, Request) :-
+prefix_target(Prefix, To, Request) :-
         debug(proloxy, "request: ~q\n", [Request]),
         memberchk(request_uri(URI0), Request),
         atom_concat(Prefix, URI, URI0),
         memberchk(method(Method0), Request),
-        atomic_list_concat([To,URI], Target),
-        debug(proloxy, "target: ~q\n", [Target]),
+        atomic_list_concat([To,URI], TargetURI),
+        debug(proloxy, "target: ~q\n", [TargetURI]),
         method_pure(Method0, Method),
-        proxy(Method, Prefix, URI0, Target, Request).
+        proxy(Method, Prefix, URI0, TargetURI, Request).
 
-proxy(data(Method), _, _, Target, Request) :-
+proxy(data(Method), _, _, TargetURI, Request) :-
         read_data(Request, Data),
-        http_open(Target, In, [method(Method), post(Data),
-                               % cert_verify_hook(cert_accept_any),
-                               header(content_type, ContentType)]),
+        http_open(TargetURI, In, [method(Method), post(Data),
+                                  % cert_verify_hook(cert_accept_any),
+                                  header(content_type, ContentType)]),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
         throw(http_reply(bytes(ContentType, Bytes))).
-proxy(other(Method), Prefix, URI, Target, _) :-
-        http_open(Target, In, [method(Method),
-                               % cert_verify_hook(cert_accept_any),
-                               redirect(false),
-                               header(location, Location0),
-                               status_code(Code),
-                               header(content_type, ContentType)]),
+proxy(other(Method), Prefix, URI, TargetURI, _) :-
+        http_open(TargetURI, In, [method(Method),
+                                  % cert_verify_hook(cert_accept_any),
+                                  redirect(false),
+                                  header(location, Location0),
+                                  status_code(Code),
+                                  header(content_type, ContentType)]),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
         (   redirect_code(Code, Status) ->
