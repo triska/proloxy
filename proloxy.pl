@@ -52,7 +52,7 @@
    Configuration
    =============
 
-   Proloxy relays client requests to web services, based on rules.
+   Proloxy uses rules to relay requests to different web services.
    There are two ways to make new web services available, with the
    first having priority over the second:
 
@@ -73,10 +73,10 @@
 
       Note in particular that:
 
-      -) the prefix is _removed_ from the target path, i.e., the
-         target server does *not* see the Prefix part of the URI.
+      -) Prefix is _removed_ from the original path, i.e., the target
+         server does *not* see the Prefix part of the URI.
 
-      -) the _same_ prefix that is used for selecting the target
+      -) The _same_ prefix that is used for selecting the target
          service is also specified as the prefix in prefix_target/2.
          This is because HTTP _redirects_ that the target server emits
          need to be rewritten. For example, if the RITS server
