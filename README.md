@@ -15,7 +15,7 @@ Proloxy uses rules to relay requests to different web services.
 There are two ways to make new web services available, with the
 first having priority over the second:
 
-1) Add a `http_handler/3` directive of the form:
+1. Add a `http_handler/3` directive of the form:
 
        :- http_handler(Prefix, prefix_target(Prefix, Target), [prefix]).
 
@@ -46,7 +46,7 @@ first having priority over the second:
 
    The directive with the longest matching Prefix is used.
 
-2) Add a custom `request_prefix_uri/3` clause, relating the HTTP
+2. Add a custom `request_prefix_uri/3` clause, relating the HTTP
    request to a prefix (which is, as above, needed to rewrite HTTP
    redirects that the target server emits) and target URI. The
    first matching clause is used.
