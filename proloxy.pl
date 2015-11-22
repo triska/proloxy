@@ -101,7 +101,17 @@
       4041, passing the original request path unmodified. This
       different server can for example host the site's main page.
 
-   You can add new target services, using these configuration elements.
+      Note that this can also be expressed with http_handler/3:
+
+          :- http_handler(/,
+                          prefix_target('', 'http://localhost:4041'),
+                          [prefix]).
+
+      However, request_prefix_uri/3 gives you more flexibility and lets
+      you for example also relay requests to different services based on
+      the Host field of the request.
+
+   You can add new target services, using these two configuration elements.
 
    An additional feature: You can easily enable HTTPS for all web
    services at once by making Proloxy itself use HTTPS for the client
