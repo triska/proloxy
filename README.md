@@ -39,9 +39,9 @@ first having priority over the second:
    - The _same_ prefix that is used for selecting the target service
      is also specified as the prefix in `prefix_target/2`. This is
      because HTTP _redirects_ that the target server emits need to be
-     rewritten. For example, if the RITS server redirects to <R>, then
-     Proloxy needs to redirect the client to /rits/<R>, so that the
-     next client request is again relayed to the RITS server.
+     rewritten. For example, if the RITS server redirects to&nbsp;`R`,
+     then Proloxy needs to redirect the client to&nbsp;`/rits/R`, so
+     that the next client request is again relayed to the RITS server.
 
    The directive with the longest matching Prefix is used.
 
