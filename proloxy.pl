@@ -53,82 +53,31 @@
    =============
 
    Proloxy uses rules to relay requests to different web services.
-   There are two ways to make new web services available, with the
-   first having priority over the second:
 
-   1) Add a http_handler/3 directive of the form:
+   To make a new web service available, add a request_prefix_uri/3
+   clause, relating an HTTP request to a prefix and target URI. The
+   first matching clause is used. The prefix is needed to rewrite HTTP
+   redirects that the target server emits, so that the next client
+   request is again relayed to the intended target service.
 
-          :- http_handler(Prefix, prefix_target(Prefix, Target), [prefix]).
+   For example, by adding the Prolog rule:
 
-      This relays requests for Prefix/Path to Target/Path.
+       request_prefix_uri(Request, '', TargetURI) :-
+               memberchk(request_uri(URI), Request),
+               atomic_list_concat(['http://localhost:4041',URI], TargetURI).
 
-      For example, the directive:
+   all requests are relayed to a local web server on port 4041,
+   passing the original request path unmodified. This different server
+   can for example host the site's main page.
 
-          :- http_handler('/rits',
-                          prefix_target('/rits', 'http://localhost:4043'),
-                          [prefix]).
-
-      relays /rits/File to http://localhost:4043/File, where a RITS
-      HTTP server handles the request.
-
-      Note in particular that:
-
-      -) Prefix is _removed_ from the original path, i.e., the target
-         server does *not* see the Prefix part of the URI.
-
-      -) The _same_ prefix that is used for selecting the target
-         service is also specified as the prefix in prefix_target/2.
-         This is because HTTP _redirects_ that the target server emits
-         need to be rewritten. For example, if the RITS server
-         redirects to <R>, then Proloxy needs to redirect the client
-         to /rits/<R>, so that the next client request is again
-         relayed to the RITS server.
-
-      The directive with the longest matching Prefix is used.
-
-   2) Add a custom request_prefix_uri/3 clause, relating the HTTP
-      request to a prefix (which is, as above, needed to rewrite HTTP
-      redirects that the target server emits) and target URI. The
-      first matching clause is used.
-
-      For example, by adding the Prolog rule:
-
-          request_prefix_uri(Request, '', TargetURI) :-
-                  memberchk(request_uri(URI), Request),
-                  atomic_list_concat(['http://localhost:4041',URI], TargetURI).
-
-      all requests are relayed to a local web server on port
-      4041, passing the original request path unmodified. This
-      different server can for example host the site's main page.
-
-      Note that this can also be expressed with http_handler/3:
-
-          :- http_handler(/,
-                          prefix_target('', 'http://localhost:4041'),
-                          [prefix]).
-
-      However, request_prefix_uri/3 gives you more flexibility and lets
-      you for example also relay requests to different services based on
-      the Host field of the request.
-
-   You can add new target services, using these two configuration elements.
-
-   An additional feature: You can easily enable HTTPS for all web
-   services at once by making Proloxy itself use HTTPS for the client
-   connection (the Proloxy<->servers connections stay local).
+   You can add new target services, using this configuration element.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Sample configuration.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-% 1) Example of using http_handler/3 directive to relay requests.
-
-:- http_handler('/rits',
-                prefix_target('/rits', 'http://localhost:4043'),
-                [prefix]).
-
-% 2) More flexible, custom rule for choosing a target URI.
+% Custom rule for choosing a target URI.
 
 request_prefix_uri(Request, '', TargetURI) :-
         memberchk(request_uri(URI), Request),
