@@ -175,21 +175,6 @@ defaulty_pure(M, other(M)).
 proloxy(Port) :-
 	http_server(http_dispatch, [port(Port)]).
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   proloxy_https/1 is like proloxy/1, but uses HTTPS.
-
-   You need a certificate and key to make this work.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-proloxy_https(Port) :-
-	http_server(http_dispatch,
-		    [ port(Port),
-		      ssl([ certificate_file('server.crt'),
-			    key_file('server.key'),
-			    password("your_password")
-			  ])
-		    ]).
-
 http:http_address -->
 	html(address([a(href('https://github.com/triska/proloxy'),
                         'Proloxy')])).
