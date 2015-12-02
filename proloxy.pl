@@ -1,8 +1,9 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   HTTP reverse proxy.
+   Proloxy: HTTP reverse proxy written in Prolog.
 
-   This lets you relay traffic to different web servers, reachable via
-   dedicated paths and a common umbrella URL.
+   This lets you relay traffic to different web servers based on rules.
+
+   See config.pl for a sample configuration.
 
    Proloxy needs SWI-Prolog >= 7.3.12.
 
@@ -30,8 +31,7 @@
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 :- module(proloxy,
-          [ proloxy/1,                  % +Port
-            proloxy_https/1             % +Port
+          [ proloxy/1                  % +Port
           ]).
 
 :- use_module(library(http/thread_httpd)).
@@ -45,85 +45,33 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_server_files)).
 
-:- dynamic request_prefix_uri/3.
+:- dynamic request_prefix_target/3.
 :- http_handler(/, custom_target, [prefix]).
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   Configuration
-   =============
-
-   Proloxy uses rules to relay requests to different web services.
-
-   To make a new web service available, add a request_prefix_uri/3
-   clause, relating an HTTP request to a prefix and target URI. The
-   first matching clause is used. The prefix is needed to rewrite HTTP
-   redirects that the target server emits, so that the next client
-   request is again relayed to the intended target service.
-
-   For example, by adding the Prolog rule:
-
-       request_prefix_uri(Request, '', TargetURI) :-
-               memberchk(request_uri(URI), Request),
-               atomic_list_concat(['http://localhost:4041',URI], TargetURI).
-
-   all requests are relayed to a local web server on port 4041,
-   passing the original request path unmodified. This different server
-   can for example host the site's main page.
-
-   You can add new target services, using this configuration element.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   Sample configuration.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-% Custom rule for choosing a target URI.
-
-request_prefix_uri(Request, '', TargetURI) :-
-        memberchk(request_uri(URI), Request),
-        atomic_list_concat(['http://localhost:4041',URI], TargetURI).
-
-
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Main logic. Relay requests based on the defined rules.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-%:- initialization http_daemon.
+:- initialization http_daemon.
 
 :- debug(proloxy).
 
 custom_target(Request) :-
         debug(proloxy, "request: ~q\n", [Request]),
-        (   request_prefix_uri(Request, Prefix, TargetURI) ->
-            true % commit to first matching clause
-        ;   throw(no_matching_clause)
-        ),
-        memberchk(request_uri(URI), Request),
-        memberchk(method(Method0), Request),
-        debug(proloxy, "target URI: ~q\n", [TargetURI]),
-        method_pure(Method0, Method),
-        proxy(Method, Prefix, URI, TargetURI, Request).
+        (   user:request_prefix_target(Request, Prefix, TargetURI) ->
+            % commit to first matching clause
+            memberchk(request_uri(URI), Request),
+            memberchk(method(Method0), Request),
+            debug(proloxy, "target URI: ~q\n", [TargetURI]),
+            method_pure(Method0, Method),
+            proxy(Method, Prefix, URI, TargetURI, Request)
+        ;   throw(http_reply(unavailable(p([tt('request_prefix_target/3'),
+                                            ': No matching rule for ~q'-[Request]]))))
+        ).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   Entry point for requests that are relayed based on http_handler/3
-   directives.
+   Relay request to TargetURI. Rewrite the response if necessary.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   1) is request_uri guaranteed to be present? how else to obtain the
-      request URI? (please document it if it is the case)
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-prefix_target(Prefix, To, Request) :-
-        debug(proloxy, "request: ~q\n", [Request]),
-        memberchk(request_uri(URI0), Request),
-        atom_concat(Prefix, URI, URI0),
-        memberchk(method(Method0), Request),
-        atomic_list_concat([To,URI], TargetURI),
-        debug(proloxy, "target: ~q\n", [TargetURI]),
-        method_pure(Method0, Method),
-        proxy(Method, Prefix, URI0, TargetURI, Request).
 
 proxy(data(Method), _, _, TargetURI, Request) :-
         read_data(Request, Data),
