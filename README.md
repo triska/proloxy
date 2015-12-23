@@ -13,12 +13,17 @@ services and serve them under a common umbrella URL.
 
 Proloxy uses **Prolog rules** to relay requests to different web services.
 
+You store these rules in a separate (Prolog) file. See
+[config.pl](config.pl) for a sample configuration file with two rules.
+
 To make a new web service available, add a clause to the predicate
 `request_prefix_target(+Request, -Prefix, -URI)`. This predicate is
-called by Proloxy. It is *given* the HTTP request, and must *compute*
-a target&nbsp;URI and a&nbsp;prefix. The prefix is needed to rewrite
-HTTP&nbsp;*redirects* that the target server emits, so that the next
-client request is again relayed to the intended target service.
+called by Proloxy. It is *given* the [HTTP
+request](http://eu.swi-prolog.org/pldoc/man?predicate=http_read_request/2),
+and must *compute* a target&nbsp;URI and a&nbsp;prefix. The prefix is
+needed to rewrite HTTP&nbsp;*redirects* that the target server emits,
+so that the next client request is again relayed to the intended
+target service.
 
 **The first matching clause is used.**
 
@@ -34,12 +39,10 @@ can for example host the site's main page.
 
 You can add new target services, using this configuration element.
 
-See [config.pl] for a sample configuration file with two rules.
-
 The rule language is general enough to express **Virtual Hosts**. In
-the case of **name-based** virtual hosts, this means for example that
-you dispatch requests to different web services based on the **domain
-name** that is used to access your site.
+the case of *name-based* virtual hosts, this means for example that
+you dispatch requests to different web services based on the *domain
+name* that is used to access your site.
 
 For example, to dispatch all requests of users who access your server
 via `your-domain.com` to a web server running on port&nbsp;4040 (while
@@ -79,8 +82,8 @@ You can also use a different port that does not need root privileges:
 swipl rules.pl proloxy.pl --interactive <b>--port=3040</b>
 </pre>
 
-You can also easily enable HTTPS with the `--https`, `--certfile` and
-`--keyfile` options.
+You can also easily enable **HTTPS** with the `--https`, `--certfile`
+and `--keyfile` options.
 
 
 Proloxy **requires** SWI-Prolog &gt;= 7.3.12.
