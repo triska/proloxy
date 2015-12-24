@@ -19,10 +19,11 @@ You store these rules in a separate (Prolog) file. See
 The predicate `request_prefix_target(+Request, -Prefix, -URI)` is
 called by Proloxy to dispatch HTTP requests. To make a new web service
 available, add a clause that relates the instantiated [HTTP
-request](http://eu.swi-prolog.org/pldoc/man?predicate=http_read_request/2),
-to a target&nbsp;URI and a&nbsp;prefix, using arbitrary Prolog code.
-The prefix is needed to rewrite HTTP&nbsp;*redirects* that the target
-server emits, so that the next client request is again relayed to the
+request](http://eu.swi-prolog.org/pldoc/man?predicate=http_read_request/2)
+to a target&nbsp;URI and a&nbsp;prefix. The clause may use arbitrary
+Prolog code to analyse the request and form the new target. The prefix
+is needed to rewrite HTTP&nbsp;*redirects* that the target server
+emits, so that the next client request is again relayed to the
 intended target service. When dispatching an HTTP request, Proloxy
 considers the clauses of `request_prefix_target/3` in the order they
 appear in your configuration file. It commits to the **first clause
