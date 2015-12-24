@@ -27,7 +27,8 @@ emits, so that the next client request is again relayed to the
 intended target service. When dispatching an HTTP request, Proloxy
 considers the clauses of `request_prefix_target/3` in the order they
 appear in your configuration file. It commits to the **first clause
-that succeeds**.
+that succeeds**, relays the request to the configured target, and then
+sends the target's response to the client.
 
 For example, by adding the following Prolog rule, *all* requests are
 relayed to a local web server on port 3031, passing the original
