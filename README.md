@@ -20,12 +20,11 @@ To make a new web service available, add a clause to the predicate
 `request_prefix_target(+Request, -Prefix, -URI)`. This predicate is
 called by Proloxy. It is *given* the [HTTP
 request](http://eu.swi-prolog.org/pldoc/man?predicate=http_read_request/2),
-and must *compute* a target&nbsp;URI and a&nbsp;prefix. The prefix is
-needed to rewrite HTTP&nbsp;*redirects* that the target server emits,
-so that the next client request is again relayed to the intended
-target service.
-
-**The first matching clause is used.**
+and must relate it to a target&nbsp;URI and a&nbsp;prefix, using
+arbitrary Prolog code. The prefix is needed to rewrite
+HTTP&nbsp;*redirects* that the target server emits, so that the next
+client request is again relayed to the intended target service. The
+**first matching clause** is used.
 
 For example, by adding the Prolog rule:
 
@@ -39,10 +38,10 @@ can for example host the site's main page.
 
 You can add new target services, using this configuration element.
 
-The rule language is general enough to express **Virtual Hosts**. In
-the case of *name-based* virtual hosts, this means for example that
-you dispatch requests to different web services based on the *domain
-name* that is used to access your site.
+The rule language is general enough to express **virtual hosts**. In
+the case of *name-based* virtual hosts, this means that you dispatch
+requests to different web services based on the *domain name* that is
+used to access your site.
 
 For example, to dispatch all requests of users who access your server
 via `your-domain.com` to a web server running on port&nbsp;4040 (while
@@ -86,4 +85,4 @@ You can also easily enable **HTTPS** with the `--https`, `--certfile`
 and `--keyfile` options.
 
 
-Proloxy **requires** SWI-Prolog &gt;= 7.3.12.
+Proloxy requires SWI-Prolog <b>7.3.12</b> or later.
