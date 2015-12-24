@@ -3,11 +3,15 @@
 
    This simple example file contains 2 clauses of request_prefix_target/3.
 
-   The first one relays URIs that start with /rits/ to a (RITS) server
+   The first rule relays URIs that start with /rits to a (RITS) server
    on port 4040.
 
-   The second and final rule relays everything else to a different web
-   server on port 3031.
+   The second and final rule relays all other requests to a different
+   web server on port 3031.
+
+   The order of rules is significant, because Proloxy commits to the
+   *first* rule that succeeds. In this example, if the order of rules
+   were exchanged, all requests would be relayed to port 3031.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,11 +39,11 @@ request_prefix_target(Request, '', TargetURI) :-
         atomic_list_concat(['http://localhost:3031',URI], TargetURI).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   Auxiliary predicate: If Atom0 starts with Prefix, removing the
-   Prefix yields Atom. Fails otherwise. Example:
+   A useful auxiliary predicate: It succeeds iff Atom0 starts with
+   Prefix, and removing the prefix yields Atom.
 
-   ?- without_prefix('/dir1/dir2/file', '/dir1', File).
-   %@ File = '/dir2/file'.
+   ?- without_prefix('/rits/fraction/demo.html', '/rits', File).
+   %@ File = '/fraction/demo.html'.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 without_prefix(Atom0, Prefix, Atom) :-
