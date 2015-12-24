@@ -23,8 +23,10 @@ request](http://eu.swi-prolog.org/pldoc/man?predicate=http_read_request/2),
 and must relate it to a target&nbsp;URI and a&nbsp;prefix, using
 arbitrary Prolog code. The prefix is needed to rewrite
 HTTP&nbsp;*redirects* that the target server emits, so that the next
-client request is again relayed to the intended target service. The
-**first matching clause** is used.
+client request is again relayed to the intended target service. When
+dispatching HTTP requests, Proloxy considers the clauses
+`request_prefix_target/3` in the order they appear in your
+configuration file and commits to the **first clause that succeeds**.
 
 For example, by adding the Prolog rule:
 
