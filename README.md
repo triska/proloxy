@@ -57,7 +57,7 @@ instance, dispatching requests to different underlying services.
 
 ## Running Proloxy
 
-Proloxy is typically run as a Unix daemon. See the [SWI-Prolog
+You can run Proloxy as a **Unix daemon**. See the [SWI-Prolog
 documentation](http://eu.swi-prolog.org/pldoc/man?section=httpunixdaemon)
 for invocation options.
 
@@ -72,7 +72,7 @@ To run Proloxy as a Unix daemon on the standard HTTP port (80) as user
 To run the process in the foreground and with a Prolog toplevel, use:
 
 <pre>
-sudo swipl rules.pl proloxy.pl <b>--interactive</b> --user=web
+sudo swipl rules.pl proloxy.pl --user=web <b>--interactive</b> 
 </pre>
 
 You can also use a different port that does not need root privileges:
