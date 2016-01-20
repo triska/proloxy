@@ -7,7 +7,7 @@ relays requests to different web services. The main advantage is
 *isolation of concerns*: You can run different and independent web
 services and serve them under a common umbrella URL.
 
-![Proloxy: Reverse proxy written in Prolog](proloxy.svg)
+![Proloxy: Reverse proxy written in Prolog](https://cdn.rawgit.com/triska/proloxy/master/proloxy.svg)
 
 ## Configuration
 
