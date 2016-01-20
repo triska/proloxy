@@ -14,20 +14,28 @@ services and serve them under a common umbrella URL.
 Proloxy uses **Prolog rules** to relay requests to different web services.
 
 You store these rules in a separate (Prolog) file. See
-[config.pl](config.pl) for a sample configuration file with two rules.
+[**config.pl**](config.pl) for a sample configuration file with two
+rules.
 
 The predicate `request_prefix_target(+Request, -Prefix, -URI)` is
-called by Proloxy to dispatch HTTP requests. To make a new web service
-available, add a clause that relates the instantiated [HTTP
-request](http://eu.swi-prolog.org/pldoc/man?predicate=http_read_request/2)
-to a target&nbsp;URI and a&nbsp;prefix. The clause may use arbitrary
-Prolog code to analyse the request and form the new target. The prefix
-is needed to rewrite HTTP&nbsp;*redirects* that the target server
-emits, so that the next client request is again relayed to the
-intended target service. When dispatching an HTTP request, Proloxy
-considers the clauses of `request_prefix_target/3` in the order they
-appear in your configuration file. It commits to the **first clause
-that succeeds**, relays the request to the configured target, and then
+called by Proloxy to dispatch HTTP requests. Its arguments are:
+
+- `Request` is the instantiated
+  [HTTP request](http://eu.swi-prolog.org/pldoc/man?predicate=http_read_request/2).
+- `Prefix` is prepended to relative paths in HTTP&nbsp;*redirects*
+  that the target service emits, so that the next client request is
+  again relayed to the intended target service.
+- `URI` is the URI of the target service.
+
+To make a new web service available, add a clause that relates an
+instantiated HTTP&nbsp;request to a target&nbsp;URI and a&nbsp;prefix.
+The clause may use arbitrary Prolog code and any number of additional
+predicates and libraries to analyse the request and form the target.
+
+When dispatching an HTTP request, Proloxy considers the clauses of
+`request_prefix_target/3` in the order they appear in your
+configuration file and *commits* to the **first clause that
+succeeds**. It relays the request to the computed target, and then
 sends the target's response to the client.
 
 For example, by adding the following Prolog rule, *all* requests are
