@@ -26,7 +26,7 @@
 
 request_prefix_target(Request, '/rits', TargetURI) :-
         memberchk(request_uri(URI), Request),
-        without_prefix(URI, '/rits', Target),
+        atom_prefix_rest(URI, '/rits', Target),
         atomic_list_concat(['http://localhost:4040',Target], TargetURI).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,11 +42,10 @@ request_prefix_target(Request, '', TargetURI) :-
    A useful auxiliary predicate: It succeeds iff Atom0 starts with
    Prefix, and removing the prefix yields Atom.
 
-   ?- without_prefix('/rits/fraction/demo.html', '/rits', File).
+   ?- atom_prefix_rest('/rits/fraction/demo.html', '/rits', File).
    %@ File = '/fraction/demo.html'.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-without_prefix(Atom0, Prefix, Atom) :-
-        sub_atom(Atom0, 0, Len, _, Prefix),
-        sub_atom(Atom0, Len, _, 0, Atom).
-
+atom_prefix_rest(Atom, Prefix, Rest) :-
+        sub_atom(Atom, 0, Len, _, Prefix),
+        sub_atom(Atom, Len, _, 0, Rest).

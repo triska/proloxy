@@ -49,6 +49,26 @@ the site's main page:
 
 You can add new target services, using this configuration element.
 
+### A useful predicate: `atom_prefix_rest/3`
+
+A useful predicate for dispatching requests is `atom_prefix_rest/3`.
+It is true *iff* `Atom` starts with `Prefix`, followed by `Rest`:
+
+    atom_prefix_rest(Atom, Prefix, Rest) :-
+            sub_atom(Atom, 0, Len, _, Prefix),
+            sub_atom(Atom, Len, _, 0, Rest).
+
+This allows you to write rules like the following, dispatching for
+example `/rits/demo.html` to `/demo.html` on a [RITS
+server](https://github.com/triska/rits):
+
+   request_prefix_target(Request, '/rits', TargetURI) :-
+           memberchk(request_uri(URI), Request),
+           atom_prefix_rest(URI, '/rits', Target),
+           atomic_list_concat(['http://localhost:4040',Target], TargetURI).
+
+### Virtual hosts
+
 The rule language is general enough to express **virtual hosts**. In
 the case of *name-based* virtual hosts, this means that you dispatch
 requests to different web services based on the *domain name* that is
