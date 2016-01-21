@@ -62,10 +62,10 @@ This allows you to write rules like the following, dispatching for
 example `/rits/demo.html` to `/demo.html` on a [RITS
 server](https://github.com/triska/rits):
 
-   request_prefix_target(Request, '/rits', TargetURI) :-
-           memberchk(request_uri(URI), Request),
-           atom_prefix_rest(URI, '/rits', Target),
-           atomic_list_concat(['http://localhost:4040',Target], TargetURI).
+    request_prefix_target(Request, '/rits', TargetURI) :-
+            memberchk(request_uri(URI), Request),
+            atom_prefix_rest(URI, '/rits', Target),
+            atomic_list_concat(['http://localhost:4040',Target], TargetURI).
 
 ### Virtual hosts
 
