@@ -68,6 +68,23 @@ leaving the path unchanged), use:
 Using this method, you can host multiple domains with a single Proloxy
 instance, dispatching requests to different underlying services.
 
+### Redirections and other replies
+
+You can also use the predicates `http_404/2` and `http_redirect/3`
+from
+[`library(http/http_dispatch)`](http://eu.swi-prolog.org/pldoc/man?section=httpdispatch)
+in your configuration files.
+
+For example, the following snippet responds with "HTTP 404
+not&nbsp;found" if the URI contains `.git`:
+
+    :- use_module(library(http/http_dispatch)).
+
+    request_prefix_target(Request, _, _) :-
+            memberchk(request_uri(Path), Request),
+            sub_atom(Path, _, _, _, '.git/'),
+            http_404([], Request).
+
 ## Testing the configuration
 
 Since each configuration file is also a valid Prolog program, you can
