@@ -126,23 +126,23 @@ documentation](http://eu.swi-prolog.org/pldoc/man?section=httpunixdaemon)
 for invocation options.
 
 In the following, assume that your proxy rules are stored in the file
-called `rules.pl`.
+called `config.pl`.
 
 To run Proloxy as a Unix daemon on the standard HTTP port (80) as user
 `web`, use:
 
-    sudo swipl rules.pl proloxy.pl --user=web
+    sudo swipl config.pl proloxy.pl --user=web
 
 To run the process in the foreground and with a Prolog toplevel, use:
 
 <pre>
-sudo swipl rules.pl proloxy.pl --user=web <b>--interactive</b> 
+sudo swipl config.pl proloxy.pl --user=web <b>--interactive</b> 
 </pre>
 
 You can also use a different port that does not need root privileges:
 
 <pre>
-swipl rules.pl proloxy.pl --interactive <b>--port=3040</b>
+swipl config.pl proloxy.pl --interactive <b>--port=3040</b>
 </pre>
 
 You can also easily enable **HTTPS** with the `--https`, `--certfile`
