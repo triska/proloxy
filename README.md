@@ -148,5 +148,12 @@ swipl config.pl proloxy.pl --interactive <b>--port=3040</b>
 You can also easily enable **HTTPS** with the `--https`, `--certfile`
 and `--keyfile` options.
 
+[**proloxy.service**](proloxy.service) is a sample **systemd**
+unit&nbps;file that runs Proloxy on system startup. Adapt the paths
+and options as needed, copy the file to&nbsp;`/etc/systemd/system/`
+and install it using:
+
+    $ sudo systemctl enable /etc/systemd/system/proloxy.service
+    $ sudo systemctl start proloxy.service
 
 Proloxy requires SWI-Prolog <b>7.3.12</b> or later.
