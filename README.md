@@ -11,14 +11,10 @@ services and serve them under a common umbrella URL.
 
 ## Configuration
 
-Proloxy uses **Prolog rules** to relay requests to different web services.
-
-You store these rules in a separate (Prolog) file. See
-[**config.pl**](config.pl) for a sample configuration file with two
-rules.
-
-The predicate `request_prefix_target(+Request, -Prefix, -URI)` is
-called by Proloxy to dispatch HTTP requests. Its arguments are:
+Proloxy uses an extensible **Prolog predicate** to relay requests to
+different web services: For each arriving HTTP&nbsp;request, Proloxy
+calls the predicate `request_prefix_target(+Request, -Prefix, -URI)`.
+Its arguments are:
 
 - `Request` is the instantiated
   [HTTP request](http://eu.swi-prolog.org/pldoc/man?predicate=http_read_request/2).
@@ -27,27 +23,31 @@ called by Proloxy to dispatch HTTP requests. Its arguments are:
   again relayed to the intended target service.
 - `URI` is the URI of the target service.
 
-To make a new web service available, add a clause that relates an
-instantiated HTTP&nbsp;request to a target&nbsp;URI and a&nbsp;prefix.
-The clause may use arbitrary Prolog code and any number of additional
-predicates and libraries to analyse the request and form the target.
+You configure Proloxy by providing a **Prolog file** that contains the
+definition of `request_prefix_target/3` and any additional predicates
+and directives you need. For each web service you want to make
+available, add a clause of `request_prefix_target/3` to relate an
+instantiated HTTP&nbsp;request to a&nbsp;prefix and the
+desired&nbsp;target. Each clause may use arbitrary Prolog code to
+analyse the request and form the target.
 
 When dispatching an HTTP request, Proloxy considers the clauses of
 `request_prefix_target/3` in the order they appear in your
-configuration file and *commits* to the **first clause that
+configuration file and **commits** to the **first clause that
 succeeds**. It relays the request to the computed target, and then
 sends the target's response to the client.
 
-For example, by adding the following Prolog rule, *all* requests are
-relayed to a local web server on port 3031, passing the original
-request path unmodified. This different server can for example host
-the site's main page:
+For example, the following clause relays *all* requests to a local web
+server on port 3031, passing along the original request path. The
+target server can for example host the site's main page, to be used if
+no other rules apply:
 
     request_prefix_target(Request, '', TargetURI) :-
             memberchk(request_uri(URI), Request),
             atomic_list_concat(['http://localhost:3031',URI], TargetURI).
 
-You can add new target services, using this configuration element.
+[**config.pl**](config.pl) shows a sample configuration file that uses
+Prolog rules to dispatch requests to two different web services.
 
 ### A useful predicate: `atom_prefix_rest/3`
 
@@ -88,11 +88,11 @@ instance, dispatching requests to different underlying services.
 
 ## Testing the configuration
 
-Since the configuration is a Prolog program, you can easily
-**test**&nbsp;it. Consulting the Prolog program in SWI-Prolog lets you
-detect syntax errors and singleton variables in your configuration
-file. To test whether HTTP requests are dispatched as you intend,
-query `request_prefix_target/3`. For example:
+Since each configuration file is also a valid Prolog program, you can
+easily **test** your configuration. Consulting the Prolog program in
+SWI-Prolog lets you detect syntax errors and singleton variables in
+your configuration file. To test whether HTTP requests are dispatched
+as you intend, query `request_prefix_target/3`. For example:
 
 <pre>
 $ swipl config.pl
