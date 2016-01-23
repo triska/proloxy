@@ -88,11 +88,11 @@ instance, dispatching requests to different underlying services.
 
 ## Testing the configuration
 
-Since the configuration is a Prolog program, you can easily *test* it.
-Consulting the Prolog program in SWI-Prolog lets you detect syntax
-errors and singleton variables in your configuration file. To test
-whether HTTP requests are dispatched as you intend, query
-`request_prefix_target/3`. For example:
+Since the configuration is a Prolog program, you can easily
+**test**&nbsp;it. Consulting the Prolog program in SWI-Prolog lets you
+detect syntax errors and singleton variables in your configuration
+file. To test whether HTTP requests are dispatched as you intend,
+query `request_prefix_target/3`. For example:
 
 <pre>
 $ swipl config.pl
@@ -114,7 +114,7 @@ Note that:
 2. we are simulating an actual HTTP request, using a list of header fields.
 3. the answers tell us how the given HTTP requests are dispatched.
 
-The ability to conveniently **test** your configuration is a nice
+The ability to conveniently test your configuration is a nice
 property, and a natural consequence of using Prolog as the
 configuration language. You can also write unit tests for your
 configuration and therefore easily detect regressions.
