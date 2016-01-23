@@ -86,6 +86,39 @@ leaving the path unchanged), use:
 Using this method, you can host multiple domains with a single Proloxy
 instance, dispatching requests to different underlying services.
 
+## Testing the configuration
+
+Since the configuration is a Prolog program, you can easily *test* it.
+Consulting the Prolog program in SWI-Prolog lets you detect syntax
+errors and singleton variables in your configuration file. To test
+whether HTTP requests are dispatched as you intend, query
+`request_prefix_target/3`. For example:
+
+<pre>
+$ swipl config.pl
+Welcome to SWI-Prolog (Multi-threaded, 64 bits, Version 7.3.14)
+...
+
+?- once(request_prefix_target(<b>[request_uri(/)]</b>, P, T)).
+P = '',
+T = 'http://localhost:3031/'.
+
+?- once(request_prefix_target(<b>[request_uri('/rits/demo.html')]</b>, P, T)).
+P = '/rits',
+T = 'http://localhost:4040/demo.html'.
+</pre>
+
+Note that:
+
+1. we are using `once/1` to commit to the *first clause that succeeds*.
+2. we are simulating an actual HTTP request, using a list of header fields.
+3. the answers tell us how the given HTTP requests are dispatched.
+
+The ability to conveniently **test** your configuration is a nice
+property, and a natural consequence of using Prolog as the
+configuration language. You can also write unit tests for your
+configuration and therefore easily detect regressions.
+
 ## Running Proloxy
 
 You can run Proloxy as a **Unix daemon**. See the [SWI-Prolog
