@@ -42,9 +42,9 @@ server on port 3031, passing along the original request path. The
 target server can for example host the site's main page, to be used if
 no other rules apply:
 
-    request_prefix_target(Request, '', TargetURI) :-
+    request_prefix_target(Request, '', Target) :-
             memberchk(request_uri(URI), Request),
-            atomic_list_concat(['http://localhost:3031',URI], TargetURI).
+            atomic_list_concat(['http://localhost:3031',URI], Target).
 
 [**config.pl**](config.pl) shows a sample configuration file that uses
 Prolog rules to dispatch requests to two different web services.
@@ -60,10 +60,10 @@ For example, to dispatch all requests of users who access your server
 via `your-domain.com` to a web server running on port&nbsp;4040 (while
 leaving the path unchanged), use:
 
-    request_prefix_target(Request, '', TargetURI) :-
+    request_prefix_target(Request, '', Target) :-
             memberchk(host('your-domain.com'), Request),
             memberchk(request_uri(URI), Request),
-            atomic_list_concat(['http://localhost:4040',URI], TargetURI).
+            atomic_list_concat(['http://localhost:4040',URI], Target).
 
 Using this method, you can host multiple domains with a single Proloxy
 instance, dispatching requests to different underlying services.

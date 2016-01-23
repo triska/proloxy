@@ -24,16 +24,16 @@
    client request is again correctly delegated to the RITS server.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-request_prefix_target(Request, '/rits', TargetURI) :-
+request_prefix_target(Request, '/rits', Target) :-
         memberchk(request_uri(URI), Request),
-        atom_concat('/rits', Target, URI),
-        atomic_list_concat(['http://localhost:4040',Target], TargetURI).
+        atom_concat('/rits', Rest, URI),
+        atomic_list_concat(['http://localhost:4040',Rest], Target).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Rule 2: Relay everything else to a local web server on port 3031.
    Note that the original path is used, and Prefix is therefore empty.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-request_prefix_target(Request, '', TargetURI) :-
+request_prefix_target(Request, '', Target) :-
         memberchk(request_uri(URI), Request),
-        atomic_list_concat(['http://localhost:3031',URI], TargetURI).
+        atomic_list_concat(['http://localhost:3031',URI], Target).
