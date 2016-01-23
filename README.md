@@ -149,7 +149,7 @@ You can also easily enable **HTTPS** with the `--https`, `--certfile`
 and `--keyfile` options.
 
 [**proloxy.service**](proloxy.service) is a sample **systemd**
-unit&nbps;file that runs Proloxy on system startup. Adapt the paths
+unit&nbsp;file that runs Proloxy on system startup. Adapt the paths
 and options as needed, copy the file to&nbsp;`/etc/systemd/system/`
 and install it using:
 
