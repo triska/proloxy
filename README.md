@@ -9,6 +9,8 @@ services and serve them under a common umbrella URL.
 
 ![Proloxy: Reverse proxy written in Prolog](http://www.metalevel.at/proloxy/proloxy.svg)
 
+Proloxy requires SWI-Prolog <b>7.3.12</b> or later.
+
 ## Configuration
 
 Proloxy uses an extensible **Prolog predicate** to relay requests to
@@ -155,4 +157,9 @@ and install it using:
     $ sudo systemctl enable /etc/systemd/system/proloxy.service
     $ sudo systemctl start proloxy.service
 
-Proloxy requires SWI-Prolog <b>7.3.12</b> or later.
+## Security: Run HTTPS servers
+
+You can run Proloxy as an&nbsp;**HTTPS** server.
+
+See [**LetSWICrypt**](https://github.com/triska/letswicrypt) for more
+information.
