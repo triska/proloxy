@@ -163,3 +163,20 @@ You can run Proloxy as an&nbsp;**HTTPS** server.
 
 See [**LetSWICrypt**](https://github.com/triska/letswicrypt) for more
 information.
+
+A common use case when using HTTPS is to run a second Proloxy instance
+as a regular HTTP&nbsp;server on port&nbsp;80 to redirect each
+request&nbsp;http://*X* to&nbsp;**https**://*X*. You can do this with
+the following configuration file for the HTTP&nbsp;server:
+
+    :- use_module(library(http/http_dispatch)).
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+       Redirect each request X to https://X
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    request_prefix_target(Request, _, _) :-
+            memberchk(request_uri(URI), Request),
+            memberchk(host(Host), Request),
+            atomic_list_concat(['https://',Host,URI], Target),
+            http_redirect(see_other, Target, Request).
