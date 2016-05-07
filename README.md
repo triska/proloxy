@@ -165,9 +165,9 @@ See [**LetSWICrypt**](https://github.com/triska/letswicrypt) for more
 information.
 
 A common use case when using HTTPS is to run a second Proloxy instance
-as a regular HTTP&nbsp;server on port&nbsp;80 to redirect each
-request&nbsp;http://*X* to&nbsp;**https**://*X*. You can do this with
-the following configuration file for the HTTP&nbsp;server:
+as a regular HTTP&nbsp;server on port&nbsp;80 to redirect each request
+for&nbsp;http://*X* to&nbsp;**https**://*X*. You can do this with the
+following configuration file for the HTTP&nbsp;server:
 
     :- use_module(library(http/http_dispatch)).
 
