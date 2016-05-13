@@ -87,6 +87,19 @@ not&nbsp;found" if the URI contains `.git`:
             sub_atom(Path, _, _, _, '.git/'),
             http_404([], Request).
 
+### Relaying header fields
+
+The extensible predicate `transmit_header_field/1` allows you to relay
+header fields that the target service emits to the client. The
+argument is the name of the header field you want to transmit if it
+exists in the target's response. For example, you can put the
+following in&nbsp;`config.pl`:
+
+    transmit_header_field(last_modified).
+
+The name of the header field is matched case-insensitively and
+underscore&nbsp;(`_`) matches hyphen&nbsp;(`-`).
+
 ## Testing the configuration
 
 Since each configuration file is also a valid Prolog program, you can
