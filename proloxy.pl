@@ -45,7 +45,10 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_server_files)).
 
-:- dynamic request_prefix_target/3.
+:- dynamic
+        request_prefix_target/3,
+        transmit_header_field/1.
+
 :- http_handler(/, custom_target, [prefix]).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -87,7 +90,8 @@ proxy(other(Method), Prefix, URI, TargetURI, _) :-
                                   redirect(false),
                                   header(location, Location0),
                                   status_code(Code),
-                                  header(content_type, ContentType)]),
+                                  header(content_type, ContentType),
+                                  headers(Headers0)]),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
         (   redirect_code(Code, Status) ->
@@ -99,8 +103,13 @@ proxy(other(Method), Prefix, URI, TargetURI, _) :-
             throw(http_reply(Reply))
         ;   Code == 404 ->
             throw(http_reply(not_found(URI)))
-        ;   throw(http_reply(bytes(ContentType, Bytes)))
+        ;   include(retain_header, Headers0, Headers),
+            throw(http_reply(bytes(ContentType, Bytes), Headers))
         ).
+
+retain_header(Hdr) :-
+        functor(Hdr, Name, _),
+        user:transmit_header_field(Name).
 
 redirect_code(301, moved).
 redirect_code(302, moved_temporary).
