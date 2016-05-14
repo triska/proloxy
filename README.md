@@ -192,4 +192,4 @@ following configuration file for the HTTP&nbsp;server:
             memberchk(request_uri(URI), Request),
             memberchk(host(Host), Request),
             atomic_list_concat(['https://',Host,URI], Target),
-            http_redirect(see_other, Target, Request).
+            http_redirect(moved, Target, Request).
