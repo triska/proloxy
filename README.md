@@ -101,13 +101,15 @@ the URL&nbsp;`/uptime` is accessed:
     request_prefix_target(Request, _, -) :-
             memberchk(request_uri(URI), Request),
             atom_concat('/uptime', _, URI),
-            process_create('/usr/bin/uptime', [], [stdout(pipe(Stream))]),
+            process_create('/usr/bin/uptime', [], [stdout(pipe(Stream)),
+                                                   stderr(pipe(Stream))]),
             format("Content-type: text/plain; charset=utf-8~n~n"),
             copy_stream_data(Stream, current_output),
-            close(Stream).
+            catch(close(Stream), error(process_error(_,exit(_)), _), true).
 
 Auxiliary programs and scripts can be conveniently invoked with
-this&nbsp;method.
+this&nbsp;method. We use&nbsp;`catch/3` to also handle cases where the
+invoked program doesn't finish with exit status&nbsp;0.
 
 ### Relaying header fields
 
