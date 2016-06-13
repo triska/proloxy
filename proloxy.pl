@@ -46,8 +46,8 @@
 :- use_module(library(http/http_server_files)).
 
 :- dynamic
-        request_prefix_target/3,
-        transmit_header_field/1.
+        user:request_prefix_target/3,
+        user:transmit_header_field/1.
 
 :- http_handler(/, custom_target, [prefix]).
 
