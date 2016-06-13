@@ -15,7 +15,7 @@ Proloxy requires SWI-Prolog <b>7.3.12</b> or later.
 
 Proloxy uses an extensible **Prolog predicate** to relay requests to
 different web services: For each arriving HTTP&nbsp;request, Proloxy
-calls the predicate `request_prefix_target(+Request, -Prefix, -URI)`.
+calls the predicate `request_prefix_target(+Request, -Prefix, -Target)`.
 Its arguments are:
 
 - `Request` is the instantiated
@@ -23,7 +23,7 @@ Its arguments are:
 - `Prefix` is prepended to relative paths in HTTP&nbsp;*redirects*
   that the target service emits, so that the next client request is
   again relayed to the intended target service.
-- `URI` is the URI of the target service.
+- `Target` is the URI of the target service.
 
 You configure Proloxy by providing a **Prolog file** that contains the
 definition of `request_prefix_target/3` and any additional predicates
@@ -86,6 +86,28 @@ not&nbsp;found" if the URI contains `.git`:
             memberchk(request_uri(Path), Request),
             sub_atom(Path, _, _, _, '.git/'),
             http_404([], Request).
+
+In some cases, it is convenient to respond directly with plain text or
+HTML&nbsp;content *instead* of relaying the request to a different web
+service. If a clause of `request_prefix_target/3` emits any text on
+standout output, then this output is sent to the client as the
+HTTP&nbsp;response. Such responses typically start with `Content-type:
+text/plain` (or&nbsp;`text/html`), followed by two&nbsp;newlines and
+the body of the reply. `Target` must be the atom&nbsp;`-`.
+
+For example, we can configure Proloxy to show the system's uptime when
+the URL&nbsp;`/uptime` is accessed:
+
+    request_prefix_target(Request, _, -) :-
+            memberchk(request_uri(URI), Request),
+            atom_concat('/uptime', _, URI),
+            process_create('/usr/bin/uptime', [], [stdout(pipe(Stream))]),
+            format("Content-type: text/plain; charset=utf-8~n~n"),
+            copy_stream_data(Stream, current_output),
+            close(Stream).
+
+Auxiliary programs and scripts can be conveniently invoked with
+this&nbsp;method.
 
 ### Relaying header fields
 

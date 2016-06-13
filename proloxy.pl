@@ -63,11 +63,13 @@ custom_target(Request) :-
         debug(proloxy, "request: ~q\n", [Request]),
         (   user:request_prefix_target(Request, Prefix, TargetURI) ->
             % commit to first matching clause
-            memberchk(request_uri(URI), Request),
-            memberchk(method(Method0), Request),
-            debug(proloxy, "target URI: ~q\n", [TargetURI]),
-            method_pure(Method0, Method),
-            proxy(Method, Prefix, URI, TargetURI, Request)
+            (   TargetURI == (-) -> true
+            ;   memberchk(request_uri(URI), Request),
+                memberchk(method(Method0), Request),
+                debug(proloxy, "target URI: ~q\n", [TargetURI]),
+                method_pure(Method0, Method),
+                proxy(Method, Prefix, URI, TargetURI, Request)
+            )
         ;   throw(http_reply(unavailable(p([tt('request_prefix_target/3'),
                                             ': No matching rule for ~q'-[Request]]))))
         ).
