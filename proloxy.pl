@@ -31,7 +31,8 @@
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 :- module(proloxy,
-          [ proloxy/1                  % +Port
+          [ proloxy/1,                  % +Port
+            output_from_process/2       % +Exec, +Args
           ]).
 
 :- use_module(library(http/thread_httpd)).
@@ -133,6 +134,17 @@ defaulty_pure(M, other(M)).
 
 proloxy(Port) :-
 	http_server(http_dispatch, [port(Port)]).
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Execute a process with arguments, emit stdout and stderr on stdout.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+output_from_process(Exec, Args) :-
+        process_create(Exec, Args, [stdout(pipe(Stream)),
+                                    stderr(pipe(Stream))]),
+        copy_stream_data(Stream, current_output),
+        % the process may terminate with any exit code.
+        catch(close(Stream), error(process_error(_,exit(_)), _), true).
 
 http:http_address -->
 	html(address([a(href('https://github.com/triska/proloxy'),
