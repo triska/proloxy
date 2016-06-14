@@ -95,21 +95,19 @@ HTTP&nbsp;response. Such responses typically start with `Content-type:
 text/plain` (or&nbsp;`text/html`), followed by two&nbsp;newlines and
 the body of the reply. `Target` must be the atom&nbsp;`-`.
 
-For example, we can configure Proloxy to show the system's uptime when
-the URL&nbsp;`/uptime` is accessed:
+Proloxy provides the predicate `output_from_process(+Program, +Args)`
+to emit process output (from `stdout` and&nbsp;`stderr`) on standard
+output. For example, we can configure Proloxy to show the system's
+uptime when the URL&nbsp;`/uptime` is accessed:
 
     request_prefix_target(Request, _, -) :-
             memberchk(request_uri(URI), Request),
             atom_concat('/uptime', _, URI),
-            process_create('/usr/bin/uptime', [], [stdout(pipe(Stream)),
-                                                   stderr(pipe(Stream))]),
             format("Content-type: text/plain; charset=utf-8~n~n"),
-            copy_stream_data(Stream, current_output),
-            catch(close(Stream), error(process_error(_,exit(_)), _), true).
+            output_from_process('/usr/bin/uptime', []).
 
 Auxiliary programs and scripts can be conveniently invoked with
-this&nbsp;method. We use&nbsp;`catch/3` to also handle cases where the
-invoked program doesn't finish with exit status&nbsp;0.
+this&nbsp;method.
 
 ### Relaying header fields
 
