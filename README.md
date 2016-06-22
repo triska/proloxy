@@ -93,7 +93,8 @@ service. If a clause of `request_prefix_target/3` emits any text on
 standout output, then this output is sent to the client as the
 HTTP&nbsp;response. Such responses typically start with `Content-type:
 text/plain` (or&nbsp;`text/html`), followed by two&nbsp;newlines and
-the body of the reply. `Target` must be the atom&nbsp;`-`.
+the body of the reply. In rules that emit output, `Target` must be the
+atom&nbsp;`-` to avoid relaying the request to a different service.
 
 Proloxy provides the predicate `output_from_process(+Program, +Args)`
 to emit process output (from `stdout` and&nbsp;`stderr`) on standard
@@ -101,8 +102,7 @@ output. For example, we can configure Proloxy to show the system's
 uptime when the URL&nbsp;`/uptime` is accessed:
 
     request_prefix_target(Request, _, -) :-
-            memberchk(request_uri(URI), Request),
-            atom_concat('/uptime', _, URI),
+            memberchk(request_uri('/uptime'), Request),
             format("Content-type: text/plain; charset=utf-8~n~n"),
             output_from_process('/usr/bin/uptime', []).
 
