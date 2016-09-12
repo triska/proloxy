@@ -215,3 +215,25 @@ following configuration file for the HTTP&nbsp;server:
             memberchk(host(Host), Request),
             atomic_list_concat(['https://',Host,URI], Target),
             http_redirect(moved, Target, Request).
+
+## WebSocket connections
+
+Proloxy supports rudimentary proxying of WebSocket connections.
+
+As an example, consider making
+[noVNC](https://github.com/kanaka/noVNC) available via `/vnc/`,
+assuming that noVNC listens on port&nbsp;6080. The following
+clauses accomplish the configuration:
+
+    request_prefix_target(Request, '/vnc', Target) :-
+            memberchk(request_uri(URI), Request),
+            atom_concat('/vnc', Rest, URI),
+            atomic_list_concat(['http://localhost:6080',Rest], Target).
+
+    request_prefix_target(Request, '/websockify', Target) :-
+            memberchk(request_uri(URI), Request),
+            atom_concat('/websockify', Rest, URI),
+            atomic_list_concat(['ws://localhost:6080',Rest], Target).
+
+WebSocket connections are automatically detected via the
+`Upgrade:&nbsp;websocket` and other header fields.
