@@ -236,4 +236,4 @@ clauses accomplish the configuration:
             atomic_list_concat(['ws://localhost:6080',Rest], Target).
 
 WebSocket connections are automatically detected via the
-`Upgrade:&nbsp;websocket` and other header fields.
+`Upgrade: websocket` and other header fields.
