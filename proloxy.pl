@@ -45,6 +45,7 @@
 :- use_module(library(http/http_error)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_server_files)).
+:- use_module(library(http/websocket)).
 
 :- dynamic
         user:request_prefix_target/3,
@@ -65,6 +66,9 @@ custom_target(Request) :-
         (   user:request_prefix_target(Request, Prefix, TargetURI) ->
             % commit to first matching clause
             (   TargetURI == (-) -> true
+            ;   upgrade_websocket(Request) ->
+                debug(proloxy, "upgrading to websockt\n", []),
+                proxy_websocket(Request, TargetURI)
             ;   memberchk(request_uri(URI), Request),
                 memberchk(method(Method0), Request),
                 debug(proloxy, "target URI: ~q\n", [TargetURI]),
@@ -74,6 +78,46 @@ custom_target(Request) :-
         ;   throw(http_reply(unavailable(p([tt('request_prefix_target/3'),
                                             ': No matching rule for ~q'-[Request]]))))
         ).
+
+proxy_websocket(Request, TargetURI) :-
+        http_upgrade_to_websocket(websocket_(TargetURI), [], Request).
+
+websocket_(TargetURI, ClientWS) :-
+        http_open_websocket(TargetURI, TargetWS, [subprotocols([binary])]),
+        websocket_loop(ClientWS, TargetWS).
+
+websocket_loop(ClientWS, TargetWS) :-
+        stream_pair(ClientWS, ClientIn, _),
+        stream_pair(TargetWS, TargetIn, _),
+        wait_for_input([ClientIn,TargetIn], ReadyList, 10),
+        (   ReadyList == [] -> true
+        ;   ReadyList = [_,_] ->
+            ws_from_to(ClientWS, TargetWS),
+            ws_from_to(TargetWS, ClientWS)
+        ;   ReadyList == [ClientIn] ->
+            ws_from_to(ClientWS, TargetWS)
+        ;   ws_from_to(TargetWS, ClientWS)
+        ),
+        websocket_loop(ClientWS, TargetWS).
+
+ws_from_to(FromWS, ToWS) :-
+        ws_receive(FromWS, Message),
+        string_length(Message.data, Len),
+        debug(proloxy, "ws received: ~w\n", [Len]),
+        (   Message.opcode == close ->
+            true
+        ;   ws_send(ToWS, Message)
+        ).
+
+upgrade_websocket(Request) :-
+        option(method(get), Request),
+        option(upgrade(websocket), Request),
+        option(connection(Connection), Request),
+        contains_upgrade(Connection).
+
+contains_upgrade(Atom) :-
+        split_string(Atom, ",", " ", Tokens),
+        once((member(Token, Tokens),string_lower(Token, "upgrade"))).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Relay request to TargetURI. Rewrite the response if necessary.
