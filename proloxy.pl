@@ -66,8 +66,8 @@ custom_target(Request) :-
         (   user:request_prefix_target(Request, Prefix, TargetURI) ->
             % commit to first matching clause
             (   TargetURI == (-) -> true
-            ;   upgrade_websocket(Request) ->
-                debug(proloxy, "upgrading to websockt\n", []),
+            ;   websocket_connection(Request) ->
+                debug(proloxy, "upgrading to websocket\n", []),
                 proxy_websocket(Request, TargetURI)
             ;   memberchk(request_uri(URI), Request),
                 memberchk(method(Method0), Request),
@@ -78,6 +78,10 @@ custom_target(Request) :-
         ;   throw(http_reply(unavailable(p([tt('request_prefix_target/3'),
                                             ': No matching rule for ~q'-[Request]]))))
         ).
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   WebSocket support.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 proxy_websocket(Request, TargetURI) :-
         http_upgrade_to_websocket(websocket_(TargetURI), [], Request).
@@ -109,7 +113,7 @@ ws_from_to(FromWS, ToWS) :-
         ;   ws_send(ToWS, Message)
         ).
 
-upgrade_websocket(Request) :-
+websocket_connection(Request) :-
         option(method(get), Request),
         option(upgrade(Upgrade), Request),
         downcase_atom(Upgrade, websocket),
