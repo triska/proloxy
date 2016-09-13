@@ -84,15 +84,18 @@ custom_target(Request) :-
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 proxy_websocket(Request, TargetURI) :-
-        http_upgrade_to_websocket(websocket_(TargetURI), [], Request).
+        % first, negotiate Protocol with the target ...
+        option(sec_websocket_protocol(Protocols0), Request),
+        split_string(Protocols0, ",", " ", Protocols1),
+        maplist(atom_string, Protocols, Protocols1),
+        http_open_websocket(TargetURI, TargetWS, [subprotocols(Protocols)]),
+        % ... then use the negotiated protocol for the client
+        ws_property(TargetWS, subprotocol(Protocol)),
+        http_upgrade_to_websocket(websocket_loop(TargetWS), [subprotocols([Protocol])], Request).
 
-websocket_(TargetURI, ClientWS) :-
-        http_open_websocket(TargetURI, TargetWS, [subprotocols([binary])]),
-        websocket_loop(ClientWS, TargetWS).
-
-websocket_loop(ClientWS, TargetWS) :-
-        stream_pair(ClientWS, ClientIn, _),
+websocket_loop(TargetWS, ClientWS) :-
         stream_pair(TargetWS, TargetIn, _),
+        stream_pair(ClientWS, ClientIn, _),
         wait_for_input([ClientIn,TargetIn], ReadyList, 10),
         (   ReadyList == [] -> true
         ;   ReadyList = [_,_] ->
@@ -102,7 +105,7 @@ websocket_loop(ClientWS, TargetWS) :-
             ws_from_to(ClientWS, TargetWS)
         ;   ws_from_to(TargetWS, ClientWS)
         ),
-        websocket_loop(ClientWS, TargetWS).
+        websocket_loop(TargetWS, ClientWS).
 
 ws_from_to(FromWS, ToWS) :-
         ws_receive(FromWS, Message),
@@ -182,7 +185,7 @@ defaulty_pure(put, data(put)).
 defaulty_pure(M, other(M)).
 
 proloxy(Port) :-
-	http_server(http_dispatch, [port(Port)]).
+        http_server(http_dispatch, [port(Port)]).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Execute a process with arguments, emit stdout and stderr on stdout.
@@ -196,5 +199,5 @@ output_from_process(Exec, Args) :-
         catch(close(Stream), error(process_error(_,exit(_)), _), true).
 
 http:http_address -->
-	html(address([a(href('https://github.com/triska/proloxy'),
+        html(address([a(href('https://github.com/triska/proloxy'),
                         'Proloxy')])).
