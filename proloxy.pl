@@ -111,7 +111,8 @@ ws_from_to(FromWS, ToWS) :-
 
 upgrade_websocket(Request) :-
         option(method(get), Request),
-        option(upgrade(websocket), Request),
+        option(upgrade(Upgrade), Request),
+        downcase_atom(Upgrade, websocket),
         option(connection(Connection), Request),
         contains_upgrade(Connection).
 
