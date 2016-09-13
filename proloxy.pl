@@ -88,6 +88,7 @@ proxy_websocket(Request, TargetURI) :-
         option(sec_websocket_protocol(Protocols0), Request),
         split_string(Protocols0, ",", " ", Protocols1),
         maplist(atom_string, Protocols, Protocols1),
+        debug(proloxy, "protocols: ~w\n", [Protocols]),
         http_open_websocket(TargetURI, TargetWS, [subprotocols(Protocols)]),
         % ... then use the negotiated protocol for the client
         ws_property(TargetWS, subprotocol(Protocol)),
@@ -96,23 +97,29 @@ proxy_websocket(Request, TargetURI) :-
 websocket_loop(TargetWS, ClientWS) :-
         stream_pair(TargetWS, TargetIn, _),
         stream_pair(ClientWS, ClientIn, _),
+        debug(proloxy, "waiting for input\n", []),
         wait_for_input([ClientIn,TargetIn], ReadyList, 10),
-        (   ReadyList == [] -> true
-        ;   ReadyList = [_,_] ->
-            ws_from_to(ClientWS, TargetWS),
-            ws_from_to(TargetWS, ClientWS)
-        ;   ReadyList == [ClientIn] ->
-            ws_from_to(ClientWS, TargetWS)
-        ;   ws_from_to(TargetWS, ClientWS)
-        ),
-        websocket_loop(TargetWS, ClientWS).
+        catch((   ReadyList == [] -> true
+              ;   ReadyList = [_,_] ->
+                  ws_from_to(ClientWS, TargetWS),
+                  ws_from_to(TargetWS, ClientWS)
+              ;   ReadyList == [ClientIn] ->
+                  ws_from_to(ClientWS, TargetWS)
+              ;   ws_from_to(TargetWS, ClientWS)
+              ), ws_proxy_done, Done=true),
+        (   Done == true ->
+            ws_close(TargetWS, 1000, "Goodbye"),
+            ws_close(ClientWS, 1000, "Goodbye")
+        ;   websocket_loop(TargetWS, ClientWS)
+        ).
 
 ws_from_to(FromWS, ToWS) :-
         ws_receive(FromWS, Message),
         string_length(Message.data, Len),
-        debug(proloxy, "ws received: ~w\n", [Len]),
+        debug(proloxy, "ws received: ~w (~w)\n", [Len,Message.opcode]),
         (   Message.opcode == close ->
-            true
+            debug(proloxy, "websocket closed\n", []),
+            throw(ws_proxy_done)
         ;   ws_send(ToWS, Message)
         ).
 
