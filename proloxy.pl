@@ -49,7 +49,8 @@
 
 :- dynamic
         user:request_prefix_target/3,
-        user:transmit_header_field/1.
+        user:transmit_header_field/1,
+        user:add_header/1.
 
 :- http_handler(/, custom_target, [prefix]).
 
@@ -64,6 +65,7 @@
 custom_target(Request) :-
         debug(proloxy, "request: ~q\n", [Request]),
         (   user:request_prefix_target(Request, Prefix, TargetURI) ->
+            debug(proloxy, "target URI: ~q\n", [TargetURI]),
             % commit to first matching clause
             (   TargetURI == (-) -> true
             ;   websocket_connection(Request) ->
@@ -71,7 +73,6 @@ custom_target(Request) :-
                 proxy_websocket(Request, TargetURI)
             ;   memberchk(request_uri(URI), Request),
                 memberchk(method(Method0), Request),
-                debug(proloxy, "target URI: ~q\n", [TargetURI]),
                 method_pure(Method0, Method),
                 proxy(Method, Prefix, URI, TargetURI, Request)
             )
@@ -154,6 +155,7 @@ proxy(other(Method), Prefix, URI, TargetURI, _) :-
                                   status_code(Code),
                                   header(content_type, ContentType),
                                   headers(Headers0)]),
+        findall(H, user:add_header(H), AddHeaders),
         call_cleanup(read_string(In, _, Bytes),
                      close(In)),
         (   redirect_code(Code, Status) ->
@@ -162,10 +164,11 @@ proxy(other(Method), Prefix, URI, TargetURI, _) :-
             ;   atom_concat(Prefix, Location0, Location)
             ),
             Reply =.. [Status,Location],
-            throw(http_reply(Reply))
+            throw(http_reply(Reply, AddHeaders))
         ;   Code == 404 ->
-            throw(http_reply(not_found(URI)))
-        ;   include(retain_header, Headers0, Headers),
+            throw(http_reply(not_found(URI), AddHeaders))
+        ;   include(retain_header, Headers0, Headers1),
+            append(Headers1, AddHeaders, Headers),
             throw(http_reply(bytes(ContentType, Bytes), Headers))
         ).
 
