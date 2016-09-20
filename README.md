@@ -122,6 +122,14 @@ following in&nbsp;`config.pl`:
 The name of the header field is matched case-insensitively and
 underscore&nbsp;(`_`) matches hyphen&nbsp;(`-`).
 
+Further, the extensible predicate `add_header/1` lets you add custom
+header fields to the response. An example is:
+
+    add_header(strict_transport_security('max-age=63072000; includeSubdomains')).
+
+This enables HTTP Strict Transport Security (HSTS), which is useful
+when running HTTPS servers.
+
 ## Testing the configuration
 
 Since each configuration file is also a valid Prolog program, you can
