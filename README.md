@@ -189,8 +189,7 @@ You can also use a different port that does not need root privileges:
 swipl config.pl proloxy.pl --interactive <b>--port=3040</b>
 </pre>
 
-You can also easily enable **HTTPS** with the `--https`, `--certfile`
-and `--keyfile` options.
+## Launching Proloxy on system startup
 
 [**proloxy.service**](proloxy.service) is a sample **systemd**
 unit&nbsp;file that runs Proloxy on system startup. Adapt the paths
@@ -202,7 +201,8 @@ and install it using:
 
 ## Security: Run HTTPS servers
 
-You can run Proloxy as an&nbsp;**HTTPS** server.
+You can run Proloxy as an&nbsp;**HTTPS** server and thus encrypt
+traffic for all hosted services at&nbsp;once.
 
 See [**LetSWICrypt**](https://github.com/triska/letswicrypt) for more
 information.
