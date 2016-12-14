@@ -52,6 +52,10 @@
         user:transmit_header_field/1,
         user:add_header/1.
 
+:- multifile
+        user:request_prefix_target/3,
+        user:transmit_header_field/1.
+
 :- http_handler(/, custom_target, [prefix]).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
