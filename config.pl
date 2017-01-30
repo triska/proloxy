@@ -37,3 +37,13 @@ request_prefix_target(Request, '/rits', Target) :-
 request_prefix_target(Request, '', Target) :-
         memberchk(request_uri(URI), Request),
         atomic_list_concat(['http://localhost:3031',URI], Target).
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Recommended configuration for relaying response header fields.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+transmit_header_field(cache_control).
+transmit_header_field(expires).
+transmit_header_field(last_modified).
+transmit_header_field(pragma).
