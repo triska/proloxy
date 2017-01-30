@@ -122,6 +122,15 @@ following in&nbsp;`config.pl`:
 The name of the header field is matched case-insensitively and
 underscore&nbsp;(`_`) matches hyphen&nbsp;(`-`).
 
+By default, RITS does _not_ relay _any_ response header&nbsp;fields.
+
+Here is a recommended configuration:
+
+    transmit_header_field(cache_control).
+    transmit_header_field(expires).
+    transmit_header_field(last_modified).
+    transmit_header_field(pragma).
+
 Further, the extensible predicate `add_header/1` lets you add custom
 header fields to the response. An example is:
 
