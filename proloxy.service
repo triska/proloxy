@@ -4,7 +4,7 @@ Description=Proloxy
 [Service]
 UMask=022
 Environment=LANG=en_US.utf8
-Restart=on-abort
+Restart=on-failure
 StartLimitInterval=60
 DefaultStartLimitBurst=5
 WorkingDirectory=/home/web/proloxy
