@@ -9,7 +9,7 @@ services and serve them under a common umbrella URL.
 
 ![Proloxy: Reverse proxy written in Prolog](http://www.metalevel.at/proloxy/proloxy.svg)
 
-Proloxy requires SWI-Prolog <b>7.3.12</b> or later.
+Proloxy requires SWI-Prolog <b>7.5.8</b> or later.
 
 ## Configuration
 
@@ -181,8 +181,8 @@ for invocation options.
 In the following, assume that your proxy rules are stored in the file
 called `config.pl`.
 
-To run Proloxy as a Unix daemon on the standard HTTP port (80) as user
-`web`, use:
+To run Proloxy as a Unix daemon on the standard HTTP port&nbsp;(80) as
+user&nbsp;`web`, use:
 
     sudo swipl config.pl proloxy.pl --user=web
 
@@ -235,12 +235,12 @@ following configuration file for the HTTP&nbsp;server:
 
 ## WebSocket connections
 
-Proloxy supports rudimentary proxying of WebSocket connections.
+Proloxy supports proxying of WebSocket connections.
 
 As an example, consider making
-[noVNC](https://github.com/kanaka/noVNC) available via `/vnc/`,
-assuming that noVNC listens on port&nbsp;6080. The following
-clauses accomplish the configuration:
+[noVNC](https://github.com/kanaka/noVNC) available via&nbsp;`/vnc/`,
+assuming that noVNC listens on port&nbsp;6080. The following clauses
+accomplish the configuration:
 
     request_prefix_target(Request, '/vnc', Target) :-
             memberchk(request_uri(URI), Request),

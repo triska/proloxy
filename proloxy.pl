@@ -5,9 +5,9 @@
 
    See config.pl for a sample configuration.
 
-   Proloxy needs SWI-Prolog >= 7.3.12.
+   Proloxy needs SWI-Prolog >= 7.5.8.
 
-   Copyright (c) 2015, 2016 Markus Triska (triska@metalevel.at)
+   Copyright (c) 2015, 2016, 2017 Markus Triska (triska@metalevel.at)
 
    Permission is hereby granted, free of charge, to any person
    obtaining a copy of this software and associated documentation
@@ -61,8 +61,6 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Main logic. Relay requests based on the defined rules.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-:- initialization http_daemon.
 
 :- debug(proloxy).
 
