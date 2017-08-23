@@ -122,7 +122,8 @@ following in&nbsp;`config.pl`:
 The name of the header field is matched case-insensitively and
 underscore&nbsp;(`_`) matches hyphen&nbsp;(`-`).
 
-By default, RITS does _not_ relay _any_ response header&nbsp;fields.
+By default, Proloxy does _not_ relay _any_ response
+header&nbsp;fields.
 
 Here is a recommended configuration:
 
