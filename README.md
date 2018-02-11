@@ -185,18 +185,18 @@ called `config.pl`.
 To run Proloxy as a Unix daemon on the standard HTTP port&nbsp;(80) as
 user&nbsp;`web`, use:
 
-    sudo swipl config.pl proloxy.pl --user=web
+    $ sudo swipl config.pl proloxy.pl --user=web
 
 To run the process in the foreground and with a Prolog toplevel, use:
 
 <pre>
-sudo swipl config.pl proloxy.pl --user=web <b>--interactive</b> 
+$ sudo swipl config.pl proloxy.pl --user=web <b>--interactive</b> 
 </pre>
 
 You can also use a different port that does not need root privileges:
 
 <pre>
-swipl config.pl proloxy.pl --interactive <b>--port=3040</b>
+$ swipl config.pl proloxy.pl --interactive <b>--port=3040</b>
 </pre>
 
 ## Launching Proloxy on system startup
