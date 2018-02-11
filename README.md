@@ -11,6 +11,10 @@ services and serve them under a common umbrella URL.
 
 Proloxy requires SWI-Prolog <b>7.5.8</b> or later.
 
+**Project page**:
+
+[**https://www.metalevel.at/proloxy/**](https://www.metalevel.at/proloxy/)
+
 ## Configuration
 
 Proloxy uses an extensible **Prolog predicate** to relay requests to
