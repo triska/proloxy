@@ -255,3 +255,30 @@ accomplish the configuration:
 
 WebSocket connections are automatically detected via the
 `Upgrade: websocket` and other header fields.
+
+## Serving very large files
+
+In typical use cases, Proloxy relays requests to *other*
+web&nbsp;servers, and sends their answers to the client. The overhead
+is typically negligible, since the other web services usually reside
+on the same&nbsp;machine.
+
+However, if a web server sends very large files in response to some
+requests, Proloxy may not have enough global&nbsp;stack space to
+collect the&nbsp;response.
+
+In such cases, one solution is to configure Proloxy so that such
+large&nbsp;files are sent directly by Proloxy, without involving a
+different web&nbsp;service. For example, the following snippet
+configures Proloxy to directly send any files (such as
+ISO&nbsp;images) that are located in `/home/web/iso`, and are accessed
+via&nbsp;`/iso/`.
+
+    :- use_module(library(http/http_dispatch)).
+
+    request_prefix_target(Request, '', _) :-
+            memberchk(request_uri(URI), Request),
+            atom_concat('/iso/', Rest, URI),
+            http_safe_file(Rest, []),
+            atom_concat('/home/web/iso', URI, Path),
+            http_reply_file(Path, [unsafe(true)], Request).
