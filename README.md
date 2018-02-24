@@ -285,4 +285,5 @@ via&nbsp;`/iso/`.
             atom_concat('/iso/', Rest, URI),
             http_safe_file(Rest, []),
             atom_concat('/home/web/iso', URI, Path),
+            exists_file(Path),
             http_reply_file(Path, [unsafe(true)], Request).
